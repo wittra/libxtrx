@@ -10,6 +10,7 @@
 #include <cmath>
 #include <string.h>
 
+// Modified by mats as a git test
 
 void SoapyXTRX::xtrx_logfunc(int sevirity, const char* message)
 {
