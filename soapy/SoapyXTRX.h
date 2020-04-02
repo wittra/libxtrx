@@ -7,6 +7,7 @@
 
 #include "../xtrx_api.h"
 
+#include "../macros.h"
 
 class XTRXHandle
 {
@@ -324,4 +325,3 @@ private:
 	long long _tx_internal; ///< Internal timestamp counter for "streamed" (i.e. non-timestamped) transmit.
 	                        ///< libxtrx only accepts timestamped tx, so we keep the current tx timestamp here.
 };
-
