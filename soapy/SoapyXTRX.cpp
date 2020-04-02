@@ -409,7 +409,15 @@ void SoapyXTRX::setFrequency(const int direction, const size_t channel, const st
 {
         xtrx_channel_t chan = to_xtrx_channels(channel);
         std::unique_lock<std::recursive_mutex> lock(_dev->accessMutex);
-        SoapySDR::logf(SOAPY_SDR_DEBUG, "SoapyXTRX::setFrequency(, %d, %s, %g MHz)", int(channel), name.c_str(), frequency/1e6);
+        if (direction == SOAPY_SDR_TX) {
+                SoapySDR::logf(SOAPY_SDR_FATAL,
+                               "SoapyXTRX::setFrequency(, TX %d, %s, %g MHz)",
+                               int(channel), name.c_str(), frequency/1e6);
+        } else {
+                SoapySDR::logf(SOAPY_SDR_FATAL,
+                               "SoapyXTRX::setFrequency(, RX %d, %s, %g MHz)",
+                               int(channel), name.c_str(), frequency/1e6);
+        }
         int res;
 
         if (name == "RF")
