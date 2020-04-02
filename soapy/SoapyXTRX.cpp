@@ -298,33 +298,40 @@ void SoapyXTRX::setGain(const int direction, const size_t channel, const double 
         else SoapySDR::Device::setGain(direction, channel, value);
 }
 
-void SoapyXTRX::setGain(const int direction, const size_t channel, const std::string &name, const double value)
+void SoapyXTRX::setGain(const int direction, const size_t channel,
+                        const std::string &name, const double value)
 {
         std::unique_lock<std::recursive_mutex> lock(_dev->accessMutex);
-        SoapySDR::logf(SOAPY_SDR_ERROR /*SOAPY_SDR_DEBUG(*/, "SoapyXTRX::setGain(, %d, %s, %g dB)", int(channel), name.c_str(), value);
+        SoapySDR::logf(SOAPY_SDR_ERROR /*SOAPY_SDR_DEBUG(*/,
+                       "SoapyXTRX::setGain(, %d, %s, %g dB)",
+                       int(channel), name.c_str(), value);
 
         xtrx_channel_t chan = to_xtrx_channels(channel);
         if (direction == SOAPY_SDR_RX and (name == "LNA" || name == "LB"))
         {
-                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_LNA_GAIN, value, &_actual_rx_gain_lna[channel]);
+                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_LNA_GAIN, value,
+                              &_actual_rx_gain_lna[channel]);
                 return;
         }
 
         else if (direction == SOAPY_SDR_RX and name == "TIA")
         {
-                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_TIA_GAIN, value, &_actual_rx_gain_tia[channel]);
+                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_TIA_GAIN, value,
+                              &_actual_rx_gain_tia[channel]);
                 return;
         }
 
         else if (direction == SOAPY_SDR_RX and name == "PGA")
         {
-                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_PGA_GAIN, value, &_actual_rx_gain_pga[channel]);
+                xtrx_set_gain(_dev->dev(), chan, XTRX_RX_PGA_GAIN, value,
+                              &_actual_rx_gain_pga[channel]);
                 return;
         }
 
         else if (direction == SOAPY_SDR_TX and name == "PAD")
         {
-                xtrx_set_gain(_dev->dev(), chan, XTRX_TX_PAD_GAIN, value, &_actual_tx_gain_pad[channel]);
+                xtrx_set_gain(_dev->dev(), chan, XTRX_TX_PAD_GAIN, value,
+                              &_actual_tx_gain_pad[channel]);
         }
 
         else throw std::runtime_error("SoapyXTRX::setGain("+name+") - unknown gain name");
@@ -412,9 +419,11 @@ void SoapyXTRX::setFrequency(const int direction, const size_t channel, const st
                 if (targetRfFreq > 3.8e9) targetRfFreq = 3.8e9;
 
                 if (direction == SOAPY_SDR_TX) {
-                        res = xtrx_tune(_dev->dev(), XTRX_TUNE_TX_FDD, targetRfFreq, &_actual_rf_tx);
+                        res = xtrx_tune(_dev->dev(), XTRX_TUNE_TX_FDD,
+                                        targetRfFreq, &_actual_rf_tx);
                 } else {
-                        res = xtrx_tune(_dev->dev(), XTRX_TUNE_RX_FDD, targetRfFreq, &_actual_rf_rx);
+                        res = xtrx_tune(_dev->dev(), XTRX_TUNE_RX_FDD,
+                                        targetRfFreq, &_actual_rf_rx);
                 }
                 if (res) {
                         throw std::runtime_error("SoapyXTRX::setFrequency("+name+") unable to tune!");
@@ -424,9 +433,13 @@ void SoapyXTRX::setFrequency(const int direction, const size_t channel, const st
         else if (name == "BB")
         {
                 if (direction == SOAPY_SDR_TX) {
-                        res = xtrx_tune_ex(_dev->dev(), XTRX_TUNE_BB_TX, chan, frequency, &_actual_bb_tx[channel]);
+                        res = xtrx_tune_ex(_dev->dev(), XTRX_TUNE_BB_TX,
+                                           chan, frequency,
+                                           &_actual_bb_tx[channel]);
                 } else {
-                        res = xtrx_tune_ex(_dev->dev(), XTRX_TUNE_BB_RX, chan, frequency, &_actual_bb_rx[channel]);
+                        res = xtrx_tune_ex(_dev->dev(), XTRX_TUNE_BB_RX,
+                                           chan, frequency,
+                                           &_actual_bb_rx[channel]);
                 }
                 if (res) {
                         throw std::runtime_error("SoapyXTRX::setFrequency("+name+") unable to tune!");
@@ -520,9 +533,14 @@ void SoapyXTRX::setSampleRate(const int direction, const size_t channel, const d
                 return;
         }
 
-        int ret = xtrx_set_samplerate(_dev->dev(), 0, _tmp_rx, _tmp_tx,
+        int ret = xtrx_set_samplerate(_dev->dev(),
+                                      0,
+                                      _tmp_rx,
+                                      _tmp_tx,
                                       0, //XTRX_SAMPLERATE_FORCE_UPDATE,
-                                      &_actual_masterclock, &_actual_rx_rate, &_actual_tx_rate);
+                                      &_actual_masterclock,
+                                      &_actual_rx_rate,
+                                      &_actual_tx_rate);
 
         if (ret) {
                 SoapySDR::logf(SOAPY_SDR_ERROR, "SoapyXTRX::setSampleRate(%d, %s, %g MHz) - error %d",
