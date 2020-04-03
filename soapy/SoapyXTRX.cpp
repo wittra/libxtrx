@@ -1125,6 +1125,7 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
         }
 
         if (direction == SOAPY_SDR_TX) {
+                params->flags |= XTRX_RSP_SWAP_AB;
                 params->flags |= XTRX_RSP_SWAP_IQ;
         }
 
@@ -1158,7 +1159,7 @@ int SoapyXTRX::activateStream(
 		const long long timeNs,
 		const size_t numElems)
 {
-        if (numElems > 32767) {
+        if (numElems > 32768) {
                 if (stream == STREAM_RX) {
                         throw std::runtime_error("SoapyXTRX::activateStream() RX - too much packet size");
                 } else {
@@ -1215,7 +1216,7 @@ int SoapyXTRX::activateStream(
         printf("flags tx: %d\n", _stream_params.tx.flags);
         printf("scale rx: %f\n", _stream_params.rx.scale);
         printf("scale tx: %f\n", _stream_params.tx.scale);
-        _stream_params.rx.paketsize = 16384; has to be like this!
+        //_stream_params.rx.paketsize = 16384;
 
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         if (res == 0) {
