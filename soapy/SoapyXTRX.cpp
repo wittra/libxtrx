@@ -1355,8 +1355,6 @@ int SoapyXTRX::writeStream(
         nfo.samples = toSend;
         nfo.ts = ts;
         nfo.timeout = timeoutUs / 1000;
-
-        //std::cerr << "SAMPLES: " << numElems << " TS:" << ts <<std::endl;
         int res = xtrx_send_sync_ex(_dev->dev(), &nfo);
 
         if (~(flags & SOAPY_SDR_HAS_TIME)) {
