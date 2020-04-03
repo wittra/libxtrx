@@ -1130,9 +1130,13 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
         }
 
         if (direction == SOAPY_SDR_RX) {
+                MARK;
+                printf("_rx_stream: %d\n", _rx_stream);
                 _rx_stream = SS_ALOCATED;
+                printf("_rx_stream: %d\n", _rx_stream);
                 return STREAM_RX;
         } else {
+                MARK;
                 _tx_stream = SS_ALOCATED;
                 return STREAM_TX;
         }
@@ -1169,8 +1173,12 @@ int SoapyXTRX::activateStream(
 
         std::unique_lock<std::recursive_mutex> lock(_dev->accessMutex);
         if (stream == STREAM_RX) {
-                if (_rx_stream != SS_ALOCATED)
-                        throw std::runtime_error("SoapyXTRX::activateStream() - RX stream isn't allocated!");
+                MARK;
+                printf("_rx_stream: %d\n", _rx_stream);
+                if (_rx_stream != SS_ALOCATED) {
+                        MARK;
+                        throw std::runtime_error("SoapyXTRX::activateStream() mats - RX stream isn't allocated!");
+                }
                 if (_actual_rx_rate < 1) {
                         throw std::runtime_error("SoapyXTRX::activateStream() - the RX sample rate has not been configured!");
                 }
@@ -1221,7 +1229,9 @@ int SoapyXTRX::activateStream(
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         if (res == 0) {
                 if (stream == STREAM_RX) {
+                        MARK;
                         _rx_stream = SS_ACTIVATED;
+                        printf("_rx_stream: %d\n", _rx_stream);
                 }
                 if (stream == STREAM_TX) {
                         _tx_stream = SS_ACTIVATED;
@@ -1245,7 +1255,6 @@ int SoapyXTRX::activateStream(
         }
 
         if (res) {
-                MARK;
                 return SOAPY_SDR_NOT_SUPPORTED;
         }
 
@@ -1268,6 +1277,7 @@ int SoapyXTRX::deactivateStream(
                         return SOAPY_SDR_STREAM_ERROR;
 
                 xtrx_stop(_dev->dev(), XTRX_RX);
+                MARK;
                 _rx_stream = SS_ALOCATED;
 
                 return 0;
