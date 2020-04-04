@@ -1345,22 +1345,96 @@ int SoapyXTRX::writeStream(
         long long ts = (flags & SOAPY_SDR_HAS_TIME) ?
 				SoapySDR::timeNsToTicks(timeNs, _actual_tx_rate) : _tx_internal;
 
-        unsigned toSend = numElems;
+        //unsigned toSend = numElems;
 
+        //xtrx_send_ex_info_t nfo;
+        //nfo.buffer_count = _tx_channels;
+        //nfo.buffers = buffs;
+        //nfo.flags = 0;
+        //nfo.samples = toSend;
+        //nfo.ts = ts;
+        //nfo.timeout = timeoutUs / 1000;
+        //int res = xtrx_send_sync_ex(_dev->dev(), &nfo);
+
+        //if (~(flags & SOAPY_SDR_HAS_TIME)) {
+        //        _tx_internal += toSend;
+        //}
+
+        //return (res) ? SOAPY_SDR_TIMEOUT : toSend;
+
+        /*****************************/
+
+
+
+        //std::vector<std::complex<int16_t>> tx_buff)
+
+
+        //size_t no_of_tx_samples = tx_buff.size();
+        size_t no_of_tx_samples = numElems;
+        std::cout << "Num TX samples: " << no_of_tx_samples << std::endl;
+        std::cout << "numElems: " << numElems << std::endl;
+        unsigned buf_cnt = _tx_channels;
+        const void* stream_buffers[2 * 8];
+
+
+        const void* usr_buf[1] = { buffs[0] };
+        std::vector<std::complex<int16_t>> tx_buff;
+        tx_buff.resize(no_of_tx_samples);
+        memcpy(tx_buff.data(), //dest
+               usr_buf[0], //src
+               numElems*4); //size
+
+        std::cout << "in writeStream: " << tx_buff[2] << std::endl;
+        std::cout << "in writeStream: " << tx_buff[23] << std::endl;
+        std::cout << "in writeStream: " << tx_buff[36501] << std::endl;
+        std::cout << "in writeStream: " << tx_buff[83683] << std::endl;
+        std::cout << "in writeStream: " << tx_buff[no_of_tx_samples-1] << std::endl;
+        /*
+          std::vector<std::complex<int16_t>> tx_buff(*buffs,
+                                                   *buffs+no_of_tx_samples);
+                                                   */
+
+
+        size_t no_of_transmitted_samples(0);
+        size_t bc(0);
         xtrx_send_ex_info_t nfo;
-        nfo.buffer_count = _tx_channels;
-        nfo.buffers = buffs;
-        nfo.flags = 0;
-        nfo.samples = toSend;
-        nfo.ts = ts;
-        nfo.timeout = timeoutUs / 1000;
-        int res = xtrx_send_sync_ex(_dev->dev(), &nfo);
-
-        if (~(flags & SOAPY_SDR_HAS_TIME)) {
-                _tx_internal += toSend;
+        nfo.flags = XTRX_TX_DONT_BUFFER;
+        //nfo.flags |= XTRX_TX_NO_DISCARD;
+        nfo.flags |= XTRX_TX_DISCARDED_TO;
+        //nfo.flags |= XTRX_TX_SEND_ZEROS;
+        //nfo.flags |= XTRX_TX_TIMEOUT;
+        //nfo.flags = 0;
+        nfo.buffer_count = buf_cnt;
+        nfo.timeout = 1000;
+        nfo.out_txlatets = 0;
+        size_t num_samples_per_cycle(8192); // TBD This must not be hard coded
+        int res(0);
+        MARK;
+        while (no_of_transmitted_samples < no_of_tx_samples) {
+                stream_buffers[bc] = &tx_buff[no_of_transmitted_samples];
+                size_t to_send(num_samples_per_cycle);
+                size_t remaining = no_of_tx_samples - no_of_transmitted_samples;
+                if (remaining < to_send) {
+                        to_send = remaining;
+                }
+                nfo.samples = to_send;
+                nfo.ts = ts + no_of_transmitted_samples;
+                nfo.buffers = (const void* const*)stream_buffers;
+                res = xtrx_send_sync_ex(_dev->dev(), &nfo);
+                if (res) {
+                        std::string err = "Failed xtrx_send_sync_ex: ";
+                        err += std::to_string(res);
+                        throw std::runtime_error(err);
+                }
+                if (res) {
+                        no_of_transmitted_samples = 0;
+                } else {
+                        no_of_transmitted_samples += to_send;
+                }
         }
-
-        return (res) ? SOAPY_SDR_TIMEOUT : toSend;
+        MARK;
+        // TBD rewrite this return to make sense
+        return (res) ? SOAPY_SDR_TIMEOUT : no_of_transmitted_samples;
 }
 
 int SoapyXTRX::readStreamStatus(
