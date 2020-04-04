@@ -1211,7 +1211,7 @@ int SoapyXTRX::activateStream(
         }
         //_stream_params.dir = XTRX_TRX;
         _stream_params.nflags = 0;
-
+        /*
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
         printf("hfmt rx: %d\n", _stream_params.rx.hfmt);
@@ -1225,7 +1225,7 @@ int SoapyXTRX::activateStream(
         printf("scale rx: %f\n", _stream_params.rx.scale);
         printf("scale tx: %f\n", _stream_params.tx.scale);
         //_stream_params.rx.paketsize = 16384;
-
+        */
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         if (res == 0) {
                 if (stream == STREAM_RX) {
@@ -1277,7 +1277,6 @@ int SoapyXTRX::deactivateStream(
                         return SOAPY_SDR_STREAM_ERROR;
 
                 xtrx_stop(_dev->dev(), XTRX_RX);
-                MARK;
                 _rx_stream = SS_ALOCATED;
 
                 return 0;
