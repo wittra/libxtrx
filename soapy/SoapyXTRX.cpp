@@ -11,6 +11,7 @@
 #include <string.h>
 
 // Modified by mats as a git test
+#include "../gnuplot_i.hpp"
 
 void SoapyXTRX::xtrx_logfunc(int sevirity, const char* message)
 {
@@ -1315,6 +1316,15 @@ int SoapyXTRX::readStream(
         rex.buffer_count = (unsigned)_rx_channels;
         rex.buffers = buffs;
         rex.flags = RCVEX_DONT_INSER_ZEROS; //RCVEX_EXTRA_LOG;
+        MARK;
+        //rex.flags = 0;
+
+        std::cout << "1****************" << std::endl;
+        std::cout << rex.samples << std::endl;
+        std::cout << rex.buffer_count << std::endl;
+        std::cout << rex.flags << std::endl;
+        std::cout << "2****************" << std::endl;
+
 
         int res = xtrx_recv_sync_ex(_dev->dev(), &rex);
         if (res) {
@@ -1345,6 +1355,8 @@ int SoapyXTRX::writeStream(
         long long ts = (flags & SOAPY_SDR_HAS_TIME) ?
 				SoapySDR::timeNsToTicks(timeNs, _actual_tx_rate) : _tx_internal;
 
+        MARK;
+        ts = 8192;
         //unsigned toSend = numElems;
 
         //xtrx_send_ex_info_t nfo;
@@ -1394,6 +1406,19 @@ int SoapyXTRX::writeStream(
                                                    *buffs+no_of_tx_samples);
                                                    */
 
+        /*
+        std::vector<float> y(tx_buff.size());
+        for (size_t n=0; n<tx_buff.size(); n++) {
+                y[n] = std::real(tx_buff[n]);
+         }
+        Gnuplot g1("lines");
+        g1.plot_x(y);
+        std::cout << std::endl << "Press ENTER to continue..." << std::endl;
+        std::cin.clear();
+        std::cin.ignore(std::cin.rdbuf()->in_avail());
+        std::cin.get();
+        */
+
 
         size_t no_of_transmitted_samples(0);
         size_t bc(0);
@@ -1410,6 +1435,14 @@ int SoapyXTRX::writeStream(
         size_t num_samples_per_cycle(8192); // TBD This must not be hard coded
         int res(0);
         MARK;
+
+        std::cout << "1*******************" << std::endl;
+        std::cout << nfo.flags << std::endl;
+        std::cout << nfo.buffer_count << std::endl;
+        std::cout << nfo.timeout << std::endl;
+        std::cout << nfo.out_txlatets << std::endl;
+        std::cout << "2*******************" << std::endl;
+
         while (no_of_transmitted_samples < no_of_tx_samples) {
                 stream_buffers[bc] = &tx_buff[no_of_transmitted_samples];
                 size_t to_send(num_samples_per_cycle);
@@ -1420,6 +1453,8 @@ int SoapyXTRX::writeStream(
                 nfo.samples = to_send;
                 nfo.ts = ts + no_of_transmitted_samples;
                 nfo.buffers = (const void* const*)stream_buffers;
+                std::cout << nfo.samples << std::endl;
+                std::cout << nfo.ts << std::endl;
                 res = xtrx_send_sync_ex(_dev->dev(), &nfo);
                 if (res) {
                         std::string err = "Failed xtrx_send_sync_ex: ";
@@ -1433,6 +1468,7 @@ int SoapyXTRX::writeStream(
                 }
         }
         MARK;
+        std::cout << "3*******************" << std::endl;
         // TBD rewrite this return to make sense
         return (res) ? SOAPY_SDR_TIMEOUT : no_of_transmitted_samples;
 }
