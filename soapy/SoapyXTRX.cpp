@@ -1212,7 +1212,7 @@ int SoapyXTRX::activateStream(
         }
         //_stream_params.dir = XTRX_TRX;
         _stream_params.nflags = 0;
-        /*
+
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
         printf("hfmt rx: %d\n", _stream_params.rx.hfmt);
@@ -1226,7 +1226,7 @@ int SoapyXTRX::activateStream(
         printf("scale rx: %f\n", _stream_params.rx.scale);
         printf("scale tx: %f\n", _stream_params.tx.scale);
         //_stream_params.rx.paketsize = 16384;
-        */
+
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         if (res == 0) {
                 if (stream == STREAM_RX) {
@@ -1310,21 +1310,8 @@ int SoapyXTRX::readStream(
         if (stream != STREAM_RX || _rx_stream != SS_ACTIVATED) {
                 return SOAPY_SDR_STREAM_ERROR;
         }
-
-        const void* usr_buf[1] = { buffs[0] };
-        std::vector<std::complex<int16_t>> rx_buff_ch1;
-        rx_buff_ch1.resize(numElems);
-        memcpy(rx_buff_ch1.data(), //dest
-               usr_buf[0], //src
-               numElems*4); //size
-
-        usr_buf[1] = { buffs[1] };
-        std::vector<std::complex<int16_t>> rx_buff_ch2;
-        rx_buff_ch2.resize(numElems);
-        memcpy(rx_buff_ch2.data(), //dest
-               usr_buf[0], //src
-               numElems*4); //size
-
+        std::vector<std::complex<int16_t>> rx_buff_ch1(numElems);
+        std::vector<std::complex<int16_t>> rx_buff_ch2(numElems);
 
         xtrx_recv_ex_info rex;
         //rex.samples = numElems;
@@ -1351,6 +1338,9 @@ int SoapyXTRX::readStream(
         void* stream_buffers[2 * 8];
         size_t no_of_captured_samples(0);
         int res = 0;
+        std::cout << "numElems: " << numElems << std::endl;
+        std::cout << "rx packet size: " << _stream_params.rx.paketsize
+                  << std::endl;
         while (no_of_captured_samples < numElems) {
                 stream_buffers[0] = &rx_buff_ch1[no_of_captured_samples];
                 stream_buffers[1] = &rx_buff_ch2[no_of_captured_samples];
@@ -1382,16 +1372,17 @@ int SoapyXTRX::readStream(
                 }
         }
 
-        void* read_buf[1] = { buffs[0] };
-        memcpy(read_buf[0], //dest
+        std::cout << "no_of_captured_samples: " << no_of_captured_samples << std::endl;
+
+        void* read_buf_ch1[1] = { buffs[0] };
+        memcpy(read_buf_ch1[0], //dest
                rx_buff_ch1.data(), //src
                no_of_captured_samples*4); //size
 
-        read_buf[1] = { buffs[1] };
-        memcpy(read_buf[0], //dest
+        void* read_buf_ch2[1] = { buffs[1] };
+        memcpy(read_buf_ch2[0], //dest
                rx_buff_ch2.data(), //src
                no_of_captured_samples*4); //size
-
 
         /***********************************************/
 
@@ -1402,7 +1393,7 @@ int SoapyXTRX::readStream(
         timeNs = SoapySDR::ticksToTimeNs(rex.out_first_sample, _actual_rx_rate);
 
         // TBD res does not really make sense when we read several packages
-        return (res) ? SOAPY_SDR_TIMEOUT : rex.out_samples;
+        return (res) ? SOAPY_SDR_TIMEOUT : no_of_captured_samples;
 }
 
 int SoapyXTRX::writeStream(
@@ -1425,37 +1416,14 @@ int SoapyXTRX::writeStream(
 
         MARK;
         ts = 8192;
-        //unsigned toSend = numElems;
 
-        //xtrx_send_ex_info_t nfo;
-        //nfo.buffer_count = _tx_channels;
-        //nfo.buffers = buffs;
-        //nfo.flags = 0;
-        //nfo.samples = toSend;
-        //nfo.ts = ts;
-        //nfo.timeout = timeoutUs / 1000;
-        //int res = xtrx_send_sync_ex(_dev->dev(), &nfo);
-
-        //if (~(flags & SOAPY_SDR_HAS_TIME)) {
-        //        _tx_internal += toSend;
-        //}
-
-        //return (res) ? SOAPY_SDR_TIMEOUT : toSend;
-
-        /*****************************/
-
-
-
-        //std::vector<std::complex<int16_t>> tx_buff)
-
-
-        //size_t no_of_tx_samples = tx_buff.size();
         size_t no_of_tx_samples = numElems;
         std::cout << "Num TX samples: " << no_of_tx_samples << std::endl;
         std::cout << "numElems: " << numElems << std::endl;
         unsigned buf_cnt = _tx_channels;
         const void* stream_buffers[2 * 8];
 
+        MARK;
 
         const void* usr_buf[1] = { buffs[0] };
         std::vector<std::complex<int16_t>> tx_buff;
@@ -1464,20 +1432,11 @@ int SoapyXTRX::writeStream(
                usr_buf[0], //src
                numElems*4); //size
 
-        std::cout << "in writeStream: " << tx_buff[2] << std::endl;
-        std::cout << "in writeStream: " << tx_buff[23] << std::endl;
-        std::cout << "in writeStream: " << tx_buff[36501] << std::endl;
-        std::cout << "in writeStream: " << tx_buff[83683] << std::endl;
-        std::cout << "in writeStream: " << tx_buff[no_of_tx_samples-1] << std::endl;
-        /*
-          std::vector<std::complex<int16_t>> tx_buff(*buffs,
-                                                   *buffs+no_of_tx_samples);
-                                                   */
 
         /*
         std::vector<float> y(tx_buff.size());
         for (size_t n=0; n<tx_buff.size(); n++) {
-                y[n] = std::real(tx_buff[n]);
+                y[n] = std::abs(tx_buff[n]);
          }
         Gnuplot g1("lines");
         g1.plot_x(y);
@@ -1485,6 +1444,7 @@ int SoapyXTRX::writeStream(
         std::cin.clear();
         std::cin.ignore(std::cin.rdbuf()->in_avail());
         std::cin.get();
+        exit(0);
         */
 
 
