@@ -1311,12 +1311,27 @@ int SoapyXTRX::readStream(
                 return SOAPY_SDR_STREAM_ERROR;
         }
 
+        const void* usr_buf[1] = { buffs[0] };
+        std::vector<std::complex<int16_t>> rx_buff_ch1;
+        rx_buff_ch1.resize(numElems);
+        memcpy(rx_buff_ch1.data(), //dest
+               usr_buf[0], //src
+               numElems*4); //size
+
+        usr_buf[1] = { buffs[1] };
+        std::vector<std::complex<int16_t>> rx_buff_ch2;
+        rx_buff_ch2.resize(numElems);
+        memcpy(rx_buff_ch2.data(), //dest
+               usr_buf[0], //src
+               numElems*4); //size
+
+
         xtrx_recv_ex_info rex;
-        rex.samples = numElems;
-        rex.buffer_count = (unsigned)_rx_channels;
-        rex.buffers = buffs;
-        rex.flags = RCVEX_DONT_INSER_ZEROS; //RCVEX_EXTRA_LOG;
-        MARK;
+        //rex.samples = numElems;
+        //rex.buffer_count = (unsigned)_rx_channels;
+        //rex.buffers = buffs;
+        //rex.flags = RCVEX_DONT_INSER_ZEROS; //RCVEX_EXTRA_LOG;
+        //MARK;
         //rex.flags = 0;
 
         /*
@@ -1328,14 +1343,65 @@ int SoapyXTRX::readStream(
         */
         MARK;
         xtrx_print_dev_info(_dev->dev());
-        int res = xtrx_recv_sync_ex(_dev->dev(), &rex);
-        if (res) {
-                SoapySDR::logf(SOAPY_SDR_INFO, "SoapyXTRX::readStream(%d) res = %d", numElems, res);
+        //int res = xtrx_recv_sync_ex(_dev->dev(), &rex);
+
+        /***********************************************/
+
+        unsigned buf_cnt = (unsigned)_rx_channels;
+        void* stream_buffers[2 * 8];
+        size_t no_of_captured_samples(0);
+        int res = 0;
+        while (no_of_captured_samples < numElems) {
+                stream_buffers[0] = &rx_buff_ch1[no_of_captured_samples];
+                stream_buffers[1] = &rx_buff_ch2[no_of_captured_samples];
+
+                size_t to_recv(_stream_params.rx.paketsize);
+                size_t remaining = numElems - no_of_captured_samples;
+                if (remaining < to_recv) {
+                        to_recv = remaining;
+                }
+                rex.samples = to_recv;
+                rex.buffer_count = buf_cnt;
+                rex.buffers = stream_buffers;
+                rex.flags = 0;
+                /*
+                std::cout << "1****************" << std::endl;
+                std::cout << ri.samples << std::endl;
+                std::cout << ri.buffer_count << std::endl;
+                std::cout << ri.flags << std::endl;
+                std::cout << "2****************" << std::endl;
+                */
+                res = xtrx_recv_sync_ex(_dev->dev(), &rex);
+                if (res) {
+                        SoapySDR::logf(SOAPY_SDR_INFO, "SoapyXTRX::readStream(%d) res = %d", numElems, res);
+                }
+                if (res) {
+                        no_of_captured_samples += 0;
+                } else {
+                        no_of_captured_samples += to_recv;
+                }
         }
+
+        void* read_buf[1] = { buffs[0] };
+        memcpy(read_buf[0], //dest
+               rx_buff_ch1.data(), //src
+               no_of_captured_samples*4); //size
+
+        read_buf[1] = { buffs[1] };
+        memcpy(read_buf[0], //dest
+               rx_buff_ch2.data(), //src
+               no_of_captured_samples*4); //size
+
+
+        /***********************************************/
+
+
+
 
         flags |= SOAPY_SDR_HAS_TIME;
         timeNs = SoapySDR::ticksToTimeNs(rex.out_first_sample, _actual_rx_rate);
 
+        // TBD res does not really make sense when we read several packages
         return (res) ? SOAPY_SDR_TIMEOUT : rex.out_samples;
 }
 
@@ -1467,7 +1533,7 @@ int SoapyXTRX::writeStream(
                         throw std::runtime_error(err);
                 }
                 if (res) {
-                        no_of_transmitted_samples = 0;
+                        no_of_transmitted_samples += 0;
                 } else {
                         no_of_transmitted_samples += to_send;
                 }
