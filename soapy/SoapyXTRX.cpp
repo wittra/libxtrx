@@ -1319,13 +1319,15 @@ int SoapyXTRX::readStream(
         MARK;
         //rex.flags = 0;
 
+        /*
         std::cout << "1****************" << std::endl;
         std::cout << rex.samples << std::endl;
         std::cout << rex.buffer_count << std::endl;
         std::cout << rex.flags << std::endl;
         std::cout << "2****************" << std::endl;
-
-
+        */
+        MARK;
+        xtrx_print_dev_info(_dev->dev());
         int res = xtrx_recv_sync_ex(_dev->dev(), &rex);
         if (res) {
                 SoapySDR::logf(SOAPY_SDR_INFO, "SoapyXTRX::readStream(%d) res = %d", numElems, res);
@@ -1435,13 +1437,16 @@ int SoapyXTRX::writeStream(
         size_t num_samples_per_cycle(8192); // TBD This must not be hard coded
         int res(0);
         MARK;
-
+        /*
         std::cout << "1*******************" << std::endl;
         std::cout << nfo.flags << std::endl;
         std::cout << nfo.buffer_count << std::endl;
         std::cout << nfo.timeout << std::endl;
         std::cout << nfo.out_txlatets << std::endl;
         std::cout << "2*******************" << std::endl;
+        */
+        MARK;
+        //xtrx_print_dev_info(_dev->dev());
 
         while (no_of_transmitted_samples < no_of_tx_samples) {
                 stream_buffers[bc] = &tx_buff[no_of_transmitted_samples];
@@ -1468,7 +1473,9 @@ int SoapyXTRX::writeStream(
                 }
         }
         MARK;
+        /*
         std::cout << "3*******************" << std::endl;
+        */
         // TBD rewrite this return to make sense
         return (res) ? SOAPY_SDR_TIMEOUT : no_of_transmitted_samples;
 }
