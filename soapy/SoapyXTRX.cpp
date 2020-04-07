@@ -1035,12 +1035,12 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
                 params = &_stream_params.rx;
                 _rx_channels = num_channels;
                 //antenna = XTRX_RX_AUTO;
-                xtrx_stop(_dev->dev(), XTRX_RX);
+                //xtrx_stop(_dev->dev(), XTRX_RX);
         } else if (direction == SOAPY_SDR_TX) {
                 params = &_stream_params.tx;
                 _tx_channels = num_channels;
                 //antenna = XTRX_TX_AUTO;
-                xtrx_stop(_dev->dev(), XTRX_TX);
+                //xtrx_stop(_dev->dev(), XTRX_TX);
         } else {
                 throw std::runtime_error("SoapyXTRX::setupStream(?) unsupported direction");
         }
@@ -1131,13 +1131,9 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
         }
 
         if (direction == SOAPY_SDR_RX) {
-                MARK;
-                printf("_rx_stream: %d\n", _rx_stream);
                 _rx_stream = SS_ALOCATED;
-                printf("_rx_stream: %d\n", _rx_stream);
                 return STREAM_RX;
         } else {
-                MARK;
                 _tx_stream = SS_ALOCATED;
                 return STREAM_TX;
         }
@@ -1174,10 +1170,7 @@ int SoapyXTRX::activateStream(
 
         std::unique_lock<std::recursive_mutex> lock(_dev->accessMutex);
         if (stream == STREAM_RX) {
-                MARK;
-                printf("_rx_stream: %d\n", _rx_stream);
                 if (_rx_stream != SS_ALOCATED) {
-                        MARK;
                         throw std::runtime_error("SoapyXTRX::activateStream() mats - RX stream isn't allocated!");
                 }
                 if (_actual_rx_rate < 1) {
@@ -1212,7 +1205,7 @@ int SoapyXTRX::activateStream(
         }
         //_stream_params.dir = XTRX_TRX;
         _stream_params.nflags = 0;
-
+        MARK;
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
         printf("hfmt rx: %d\n", _stream_params.rx.hfmt);
@@ -1226,22 +1219,19 @@ int SoapyXTRX::activateStream(
         printf("scale rx: %f\n", _stream_params.rx.scale);
         printf("scale tx: %f\n", _stream_params.tx.scale);
         //_stream_params.rx.paketsize = 16384;
+        MARK;
 
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         if (res == 0) {
                 if (stream == STREAM_RX) {
-                        MARK;
                         _rx_stream = SS_ACTIVATED;
-                        printf("_rx_stream: %d\n", _rx_stream);
                 }
                 if (stream == STREAM_TX) {
                         _tx_stream = SS_ACTIVATED;
                 }
         } else {
                 if (stream == STREAM_RX) {
-                        MARK;
                 } else {
-                        MARK;
                 }
         }
 
@@ -1328,8 +1318,8 @@ int SoapyXTRX::readStream(
         std::cout << rex.flags << std::endl;
         std::cout << "2****************" << std::endl;
         */
-        MARK;
-        xtrx_print_dev_info(_dev->dev());
+        //MARK;
+        //xtrx_print_dev_info(_dev->dev());
         //int res = xtrx_recv_sync_ex(_dev->dev(), &rex);
 
         /***********************************************/
@@ -1338,9 +1328,10 @@ int SoapyXTRX::readStream(
         void* stream_buffers[2 * 8];
         size_t no_of_captured_samples(0);
         int res = 0;
-        std::cout << "numElems: " << numElems << std::endl;
-        std::cout << "rx packet size: " << _stream_params.rx.paketsize
-                  << std::endl;
+        //MARK;
+        //std::cout << "numElems: " << numElems << std::endl;
+        //std::cout << "rx packet size: " << _stream_params.rx.paketsize
+        //          << std::endl;
         while (no_of_captured_samples < numElems) {
                 stream_buffers[0] = &rx_buff_ch1[no_of_captured_samples];
                 stream_buffers[1] = &rx_buff_ch2[no_of_captured_samples];
