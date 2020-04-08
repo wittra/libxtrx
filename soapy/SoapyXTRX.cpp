@@ -1205,6 +1205,7 @@ int SoapyXTRX::activateStream(
         }
         //_stream_params.dir = XTRX_TRX;
         _stream_params.nflags = 0;
+        /*
         MARK;
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
@@ -1220,8 +1221,15 @@ int SoapyXTRX::activateStream(
         printf("scale tx: %f\n", _stream_params.tx.scale);
         //_stream_params.rx.paketsize = 16384;
         MARK;
+        */
 
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
+        /*
+        MARK;
+        xtrx_print_dev_info(_dev->dev());
+        MARK;
+        */
+
         if (res == 0) {
                 if (stream == STREAM_RX) {
                         _rx_stream = SS_ACTIVATED;
@@ -1328,10 +1336,18 @@ int SoapyXTRX::readStream(
         void* stream_buffers[2 * 8];
         size_t no_of_captured_samples(0);
         int res = 0;
-        //MARK;
-        //std::cout << "numElems: " << numElems << std::endl;
-        //std::cout << "rx packet size: " << _stream_params.rx.paketsize
-        //          << std::endl;
+        /*
+        MARK;
+        std::cout << "numElems: " << numElems << std::endl;
+        std::cout << "rx packet size: " << _stream_params.rx.paketsize
+                  << std::endl;
+        */
+        /*
+        MARK;
+        xtrx_print_dev_info(_dev->dev());
+        MARK;
+        */
+
         while (no_of_captured_samples < numElems) {
                 stream_buffers[0] = &rx_buff_ch1[no_of_captured_samples];
                 stream_buffers[1] = &rx_buff_ch2[no_of_captured_samples];
@@ -1345,12 +1361,13 @@ int SoapyXTRX::readStream(
                 rex.buffer_count = buf_cnt;
                 rex.buffers = stream_buffers;
                 rex.flags = 0;
+
                 /*
-                std::cout << "1****************" << std::endl;
-                std::cout << ri.samples << std::endl;
-                std::cout << ri.buffer_count << std::endl;
-                std::cout << ri.flags << std::endl;
-                std::cout << "2****************" << std::endl;
+                MARK;
+                std::cout << rex.samples << std::endl;
+                std::cout << rex.buffer_count << std::endl;
+                std::cout << rex.flags << std::endl;
+                MARK;
                 */
                 res = xtrx_recv_sync_ex(_dev->dev(), &rex);
                 if (res) {
