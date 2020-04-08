@@ -1177,8 +1177,10 @@ int SoapyXTRX::activateStream(
                         throw std::runtime_error("SoapyXTRX::activateStream() - the RX sample rate has not been configured!");
                 }
                 if (flags & SOAPY_SDR_HAS_TIME) {
+                        MARK;
                         _stream_params.rx_stream_start = (master_ts)SoapySDR::timeNsToTicks(timeNs, _actual_rx_rate);
                 } else {
+                        MARK;
                         _stream_params.rx_stream_start = 32768;
                 }
                 _stream_params.rx.paketsize = (uint16_t)numElems;
@@ -1205,7 +1207,7 @@ int SoapyXTRX::activateStream(
         }
         //_stream_params.dir = XTRX_TRX;
         _stream_params.nflags = 0;
-        /*
+
         MARK;
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
@@ -1219,9 +1221,13 @@ int SoapyXTRX::activateStream(
         printf("flags tx: %d\n", _stream_params.tx.flags);
         printf("scale rx: %f\n", _stream_params.rx.scale);
         printf("scale tx: %f\n", _stream_params.tx.scale);
+        printf("tx_repeat_buf: %p\n", _stream_params.tx_repeat_buf);
+        printf("dir: %d\n", _stream_params.dir);
+        printf("rx_stream_start: %ld\n", _stream_params.rx_stream_start);
+
         //_stream_params.rx.paketsize = 16384;
         MARK;
-        */
+
 
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         /*
