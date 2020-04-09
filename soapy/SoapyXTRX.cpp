@@ -1102,20 +1102,26 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
         }
 
         if (num_channels == 1) {
+                MARK;
                 params->flags |= XTRX_RSP_SISO_MODE;
                 if (channels.size() == 0 || channels[0] == 0) {
+                        MARK;
                         params->chs = XTRX_CH_AB;
                         params->flags |= XTRX_RSP_SISO_MODE;
                 } else if (channels[0] == 1) {
+                        MARK;
                         params->chs = XTRX_CH_AB;
                         params->flags |= XTRX_RSP_SISO_MODE | XTRX_RSP_SWAP_AB;
                 } else {
                         throw std::runtime_error("SoapyXTRX::setupStream([x]) unsupported channels");
                 }
         } else if (num_channels == 2) {
+                MARK;
                 if (channels[0] == 0 && channels[1] == 1) {
+                        MARK;
                         params->chs = XTRX_CH_AB;
                 } else if (channels[0] == 1 && channels[1] == 0) {
+                        MARK;
                         params->chs = XTRX_CH_AB;
                         params->flags |= XTRX_RSP_SWAP_AB;
                 } else {
@@ -1126,7 +1132,7 @@ SoapySDR::Stream *SoapyXTRX::setupStream(
         }
 
         if (direction == SOAPY_SDR_TX) {
-                params->flags |= XTRX_RSP_SWAP_AB;
+                //params->flags |= XTRX_RSP_SWAP_AB;
                 params->flags |= XTRX_RSP_SWAP_IQ;
         }
 
@@ -1178,7 +1184,8 @@ int SoapyXTRX::activateStream(
                 }
                 if (flags & SOAPY_SDR_HAS_TIME) {
                         MARK;
-                        _stream_params.rx_stream_start = (master_ts)SoapySDR::timeNsToTicks(timeNs, _actual_rx_rate);
+                        //_stream_params.rx_stream_start = (master_ts)SoapySDR::timeNsToTicks(timeNs, _actual_rx_rate);
+                        _stream_params.rx_stream_start = timeNs;
                 } else {
                         MARK;
                         _stream_params.rx_stream_start = 32768;
@@ -1196,7 +1203,8 @@ int SoapyXTRX::activateStream(
                 _stream_params.tx_repeat_buf = NULL;
                 _stream_params.dir = XTRX_TX;
                 if (flags & SOAPY_SDR_HAS_TIME) {
-                        _tx_internal = SoapySDR::timeNsToTicks(timeNs, _actual_tx_rate);
+                        //_tx_internal = SoapySDR::timeNsToTicks(timeNs, _actual_tx_rate);
+                        _tx_internal = timeNs;
                 } else {
                         _tx_internal = 32768;
                 }
