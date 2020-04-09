@@ -1214,8 +1214,10 @@ int SoapyXTRX::activateStream(
                 _stream_params.dir = XTRX_TRX;
         }
         //_stream_params.dir = XTRX_TRX;
-        _stream_params.nflags = 0;
+        //_stream_params.nflags = 0;
+        _stream_params.nflags = 4;
 
+        /*
         MARK;
         printf("wfmt rx: %d\n", _stream_params.rx.wfmt);
         printf("wfmt tx: %d\n", _stream_params.tx.wfmt);
@@ -1232,10 +1234,12 @@ int SoapyXTRX::activateStream(
         printf("tx_repeat_buf: %p\n", _stream_params.tx_repeat_buf);
         printf("dir: %d\n", _stream_params.dir);
         printf("rx_stream_start: %ld\n", _stream_params.rx_stream_start);
-
+        printf("gtime sec: %d\n", _stream_params.gtime.sec);
+        printf("gtime nsec: %d\n", _stream_params.gtime.nsec);
+        printf("nflags: %d\n", _stream_params.nflags);
         //_stream_params.rx.paketsize = 16384;
         MARK;
-
+        */
 
         int res = xtrx_run_ex(_dev->dev(), &_stream_params);
         /*
@@ -1484,7 +1488,7 @@ int SoapyXTRX::writeStream(
         nfo.out_txlatets = 0;
         size_t num_samples_per_cycle(8192); // TBD This must not be hard coded
         int res(0);
-        MARK;
+        //MARK;
         /*
         std::cout << "1*******************" << std::endl;
         std::cout << nfo.flags << std::endl;
@@ -1493,7 +1497,7 @@ int SoapyXTRX::writeStream(
         std::cout << nfo.out_txlatets << std::endl;
         std::cout << "2*******************" << std::endl;
         */
-        MARK;
+        //MARK;
         //xtrx_print_dev_info(_dev->dev());
 
         while (no_of_transmitted_samples < no_of_tx_samples) {
@@ -1506,8 +1510,8 @@ int SoapyXTRX::writeStream(
                 nfo.samples = to_send;
                 nfo.ts = ts + no_of_transmitted_samples;
                 nfo.buffers = (const void* const*)stream_buffers;
-                std::cout << nfo.samples << std::endl;
-                std::cout << nfo.ts << std::endl;
+                //std::cout << nfo.samples << std::endl;
+                //std::cout << nfo.ts << std::endl;
                 res = xtrx_send_sync_ex(_dev->dev(), &nfo);
                 if (res) {
                         std::string err = "Failed xtrx_send_sync_ex: ";
@@ -1520,7 +1524,7 @@ int SoapyXTRX::writeStream(
                         no_of_transmitted_samples += to_send;
                 }
         }
-        MARK;
+        //MARK;
         /*
         std::cout << "3*******************" << std::endl;
         */
