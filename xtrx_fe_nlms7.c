@@ -919,7 +919,7 @@ int lms7nfe_dd_configure(struct xtrx_nfe_lms7* dev,
 								rxafen_a, rxafen_b);
 		if (res)
 			return res;
-		if (~(params->rx.flags & XTRX_RSP_NO_DC_CORR)) {
+		if ((params->rx.flags & XTRX_RSP_NO_DC_CORR)==0) {
 			res = lms7_rxtsp_dc_corr(&dev->lms_state, 7);
 			if (res)
 				return res;
@@ -1569,4 +1569,3 @@ void _lms7nfe_init_base(struct xtrx_nfe_lms7 *dev)
 {
 	dev->base.ops = &_lms7nfe_ops;
 }
-
